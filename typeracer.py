@@ -1,7 +1,9 @@
-import re, time
+import re
+import time
+
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from pynput.keyboard import Key, Controller
+from selenium import webdriver
 
 # Change these if you are playing against a friend
 friendly = False
@@ -45,7 +47,7 @@ time.sleep(15)
 
 # Read the html
 html = driver.page_source
-soup = BeautifulSoup(html)
+soup = BeautifulSoup(html, features="html.parser")
 
 # Find the text within the html
 for span in soup.find_all("span", unselectable="on"):
