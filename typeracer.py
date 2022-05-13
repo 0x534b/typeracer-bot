@@ -1,3 +1,4 @@
+import argparse
 import re
 import time
 
@@ -5,12 +6,16 @@ from bs4 import BeautifulSoup
 from pynput.keyboard import Key, Controller
 from selenium import webdriver
 
+parser = argparse.ArgumentParser(description='Crush ppl at typeracer.')
+
+parser.add_argument('--friendly-link', nargs=1, help='a link for a friendly match')
+args = parser.parse_args()
+
 # Change these if you are playing against a friend
-friendly = False
-friendly_url = ""
+friendly = args.friendly_link is not None
 
 if friendly:
-	url = friendly_url
+	url = args.friendly_link[0]
 else:
 	url = "http://play.typeracer.com/"
 
