@@ -12,14 +12,14 @@ SPEED_SCALER = 1
 
 parser = argparse.ArgumentParser(description='Crush your opponents at typeracer.')
 parser.add_argument('--friendly-link', nargs=1, help='a link for a friendly match')
-parser.add_argument('--wpm', nargs=1, help='typing speed: the defauld 350 words per minute is fairly safe to avoid disqualification')
+parser.add_argument('--max-wpm', nargs=1, help='max typing speed: the default 350 words per minute is fairly safe to avoid disqualification')
 
 args = parser.parse_args()
 
 if args.wpm is None:
 	wpm = 400
 else:
-	wpm = args.wpm[0]
+	wpm = args.max_wpm[0]
 
 
 # Change these if you are playing against a friend
