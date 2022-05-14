@@ -57,7 +57,7 @@ texts = [span.text for span in elems]
 
 # deal with the possibility that the first word is one letter
 if len(texts) == 3:
-	texts = [texts[0] + texts[1], texts[2]]
+	texts = [texts[0] + texts[1]] + texts[2:]
 
 # the first letter + the rest of the first word + the rest of the text
 string = ' '.join(texts)
