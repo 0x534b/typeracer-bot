@@ -1,15 +1,26 @@
 import argparse
-import re
 import time
 
-from bs4 import BeautifulSoup
-from pynput.keyboard import Key, Controller
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-parser = argparse.ArgumentParser(description='Crush ppl at typeracer.')
+WAIT_TIME = 60
+# SPEED_SCALER = 1.9219219219219221
+SPEED_SCALER = 1
 
+parser = argparse.ArgumentParser(description='Crush your opponents at typeracer.')
 parser.add_argument('--friendly-link', nargs=1, help='a link for a friendly match')
+parser.add_argument('--wpm', nargs=1, help='typing speed: the defauld 350 words per minute is fairly safe to avoid disqualification')
+
 args = parser.parse_args()
+
+if args.wpm is None:
+	wpm = 400
+else:
+	wpm = args.wpm[0]
+
 
 # Change these if you are playing against a friend
 friendly = args.friendly_link is not None
@@ -19,48 +30,55 @@ if friendly:
 else:
 	url = "http://play.typeracer.com/"
 
-string = ""
-keyboard = Controller()
-
 # Load up the page..
 driver = webdriver.Firefox()
 driver.get(url)
 
-# Wait for the page to load
-time.sleep(5)
-
-# Press shortcut for new race
-keyboard.press(Key.ctrl)
-keyboard.press(Key.alt)
-
+# find the button on the page to join the race
 if friendly:
-	keyboard.press('k')
+	# wait up to 15 secs for the start button to load
+	elem = WebDriverWait(driver, WAIT_TIME).until(
+	EC.presence_of_element_located((By.CLASS_NAME, "raceAgainLink"))
+	)
 else:
-	keyboard.press('i')
+	elem = WebDriverWait(driver, WAIT_TIME).until(
+	EC.presence_of_element_located((By.XPATH, "//a[contains(text(), 'Enter a Typing Race')]"))
+	)
 
-# Release pressed keys
-keyboard.release(Key.ctrl)
-keyboard.release(Key.alt)
+# click the button to join the race
+elem.click()
 
-if friendly:
-	keyboard.release('k')
-else:
-	keyboard.release('i')
+# read the text prompt
+elems = WebDriverWait(driver, WAIT_TIME).until(
+	EC.presence_of_all_elements_located((By.XPATH, '//span[@unselectable="on"]'))
+	)
 
-# Wait for the race to start
-time.sleep(15)
+texts = [span.text for span in elems]
 
-# Read the html
-html = driver.page_source
-soup = BeautifulSoup(html, features="html.parser")
+# deal with the possibility that the first word is one letter
+if len(texts) == 3:
+	texts = [texts[0] + texts[1], texts[2]]
 
-# Find the text within the html
-for span in soup.find_all("span", unselectable="on"):
-    string += span.text
+# the first letter + the rest of the first word + the rest of the text
+string = ' '.join(texts)
 
-# Loop through typing each character at a time with a delay
-for char in string:
-	keyboard.press(char)
-	keyboard.release(char)
-	time.sleep(0.018)
+# wait up to 20 secs for the race to start
+WebDriverWait(driver, WAIT_TIME).until(EC.invisibility_of_element((By.CLASS_NAME, "countdownPopup")))
+
+# select the text input field
+elem = driver.find_element(by=By.CLASS_NAME, value="txtInput")
+elem.click()
+
+speed = int(wpm) * SPEED_SCALER
+delta = (1/speed * 60)
+
+old_time = time.time()
+
+for word in string.split(' '):
+	elem.send_keys(word + ' ')
+	while 1:
+		new_time = time.time()
+		if new_time - old_time >= delta:
+			break
+	old_time = new_time
 
