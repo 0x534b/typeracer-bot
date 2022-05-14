@@ -6,13 +6,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-WAIT_TIME = 60
 # SPEED_SCALER = 1.9219219219219221
 SPEED_SCALER = 1
 
 parser = argparse.ArgumentParser(description='Crush your opponents at typeracer.')
 parser.add_argument('--friendly-link', nargs=1, help='a link for a friendly match')
 parser.add_argument('--max-wpm', nargs=1, help='max typing speed: the default 400 words per minute is fairly safe to avoid disqualification')
+parser.add_argument('--max-wait', nargs=1, help='max time to wait for page loads (seconds)')
 
 args = parser.parse_args()
 
@@ -21,6 +21,10 @@ if args.wpm is None:
 else:
 	wpm = args.max_wpm[0]
 
+if args.max_wait is None:
+	wait_time = 60
+else:
+	wait_time = args.max_wait[0]
 
 # Change these if you are playing against a friend
 friendly = args.friendly_link is not None
@@ -37,11 +41,11 @@ driver.get(url)
 # find the button on the page to join the race
 if friendly:
 	# wait up to 15 secs for the start button to load
-	elem = WebDriverWait(driver, WAIT_TIME).until(
+	elem = WebDriverWait(driver, wait_time).until(
 	EC.presence_of_element_located((By.CLASS_NAME, "raceAgainLink"))
 	)
 else:
-	elem = WebDriverWait(driver, WAIT_TIME).until(
+	elem = WebDriverWait(driver, wait_time).until(
 	EC.presence_of_element_located((By.XPATH, "//a[contains(text(), 'Enter a Typing Race')]"))
 	)
 
@@ -49,7 +53,7 @@ else:
 elem.click()
 
 # read the text prompt
-elems = WebDriverWait(driver, WAIT_TIME).until(
+elems = WebDriverWait(driver, wait_time).until(
 	EC.presence_of_all_elements_located((By.XPATH, '//span[@unselectable="on"]'))
 	)
 
@@ -63,7 +67,7 @@ if len(texts) == 3:
 string = ' '.join(texts)
 
 # wait up to 20 secs for the race to start
-WebDriverWait(driver, WAIT_TIME).until(EC.invisibility_of_element((By.CLASS_NAME, "countdownPopup")))
+WebDriverWait(driver, wait_time).until(EC.invisibility_of_element((By.CLASS_NAME, "countdownPopup")))
 
 # select the text input field
 elem = driver.find_element(by=By.CLASS_NAME, value="txtInput")
