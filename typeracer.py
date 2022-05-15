@@ -16,7 +16,7 @@ parser.add_argument('--max-wait', nargs=1, help='max time to wait for page loads
 
 args = parser.parse_args()
 
-if args.wpm is None:
+if args.max_wpm is None:
 	wpm = 400
 else:
 	wpm = args.max_wpm[0]
